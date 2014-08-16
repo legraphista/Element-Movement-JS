@@ -31,9 +31,6 @@ var Draggable = {
             }
         }
         window.onmousemove = function (e) {
-            if (Draggable.lastDraggedElement === undefined) return;
-            if (Draggable.lastDraggedElement.isDown == false) return;
-
             var x = e.clientX;
             var y = e.clientY;
             var rect = Draggable.lastDraggedElement.obj.getBoundingClientRect();
@@ -43,6 +40,10 @@ var Draggable = {
                     Draggable.elements[i].onmousemove(e);
                 }
             }
+
+
+            if (Draggable.lastDraggedElement === undefined) return;
+            if (Draggable.lastDraggedElement.isDown == false) return;
 
             if (!(rect.left <= x && rect.right >= x)) {
                 Draggable.lastDraggedElement.obj.onmouseup();
@@ -65,8 +66,8 @@ var Draggable = {
         //mouse down
         element.obj.onmousedown = function (e) {
             element.isDown = true;
-            var x = e.x;
-            var y = e.y;
+            var x = e.clientX;
+            var y = e.clientY;
             var rect = element.obj.getBoundingClientRect();
 
             element.obj.style.zIndex = Draggable.options.onTopzIndex;
@@ -112,8 +113,8 @@ var Draggable = {
         element.onmousemove = function (e) {
             if (element.isDown == false) return;
 
-            var x = e.x;
-            var y = e.y;
+            var x = e.clientX;
+            var y = e.clientY;
 
 
 

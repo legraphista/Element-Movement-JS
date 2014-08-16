@@ -13,7 +13,8 @@ var Draggable = {
             left: 0,
             right: 0,
             bottom: 0
-        }
+        },
+        "moveInboundSpeed": 1
     },
 
     elements: new Array(),
@@ -74,6 +75,11 @@ var Draggable = {
         element.obj = e;
         element.isDown = false;
         element.originalZindex = element.obj.style.zIndex;
+
+        var rect = element.obj.getBoundingClientRect();
+        element.X = rect.left;
+        element.Y = rect.top;
+
         element.obj.ondragstart = function () { return false; };
         //mouse down
         element.obj.onmousedown = function (e) {
@@ -172,7 +178,7 @@ var Draggable = {
             if (ySpeed > 0)
                 ySpeed = -ySpeed;
 
-        
+
 
         if (element.X + element.obj.offsetWidth > Draggable.options.bounds.right)
             if (xSpeed < 0)
@@ -190,9 +196,9 @@ var Draggable = {
             ySpeed *= Draggable.options.inertiaDecelFactor;
         } else {
             if (Math.abs(ySpeed) < 0.1)
-                ySpeed = 1;
+                ySpeed = Draggable.options.moveInboundSpeed;
             if (Math.abs(xSpeed) < 0.1)
-                xSpeed = 1;
+                xSpeed = Draggable.options.moveInboundSpeed;
         }
 
         Draggable.applyTransform(element, xSpeed, ySpeed);
@@ -237,5 +243,11 @@ var Draggable = {
 
             element.obj.style.transform = "perspective(500px) rotateY(" + rotateYAngle + "deg) rotateX(" + rotateXAngle + "deg)";
         }
+    },
+
+    getElementById: function (id) {
+        for (i = 0; i < Draggable.elements.length; i++)
+            if (Draggable.elements[i].obj.id.toString() == id)
+                return Draggable.elements[i];
     }
 }

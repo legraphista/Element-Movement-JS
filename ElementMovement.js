@@ -7,7 +7,13 @@ var Draggable = {
         "inertiaEnabled": true,
         "checkForElementInBounds": false,
         "decelForceBackInBounds": true,
-        "enableTransforming": true
+        "enableTransforming": true,
+        "bounds": {
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+        }
     },
 
     elements: new Array(),
@@ -16,6 +22,9 @@ var Draggable = {
 
     setUpDraggableElements: function () {
 
+        Draggable.options.bounds.bottom = Draggable.getScreenSize().h;
+        Draggable.options.bounds.right = Draggable.getScreenSize().w;
+
         var elements = document.querySelectorAll('[' + "canMove" + ']');
 
         for (i = 0; i < elements.length; i++) {
@@ -23,8 +32,9 @@ var Draggable = {
         }
 
 
-        window.onmouseup = function (e){
-             for (i = 0; i < Draggable.elements.length; i++) {
+
+        window.onmouseup = function (e) {
+            for (i = 0; i < Draggable.elements.length; i++) {
                 if (Draggable.elements[i].isDown) {
                     Draggable.elements[i].onmouseup();
                 }
@@ -33,7 +43,7 @@ var Draggable = {
         window.onmousemove = function (e) {
             var x = e.clientX;
             var y = e.clientY;
-            var rect = Draggable.lastDraggedElement.obj.getBoundingClientRect();
+
 
             for (i = 0; i < Draggable.elements.length; i++) {
                 if (Draggable.elements[i].isDown) {
@@ -44,6 +54,8 @@ var Draggable = {
 
             if (Draggable.lastDraggedElement === undefined) return;
             if (Draggable.lastDraggedElement.isDown == false) return;
+
+            var rect = Draggable.lastDraggedElement.obj.getBoundingClientRect();
 
             if (!(rect.left <= x && rect.right >= x)) {
                 Draggable.lastDraggedElement.obj.onmouseup();
@@ -152,21 +164,21 @@ var Draggable = {
         element.X -= xSpeed;
         element.Y -= ySpeed;
 
-        if (element.X < 0)
+        if (element.X < Draggable.options.bounds.left)
             if (xSpeed > 0)
                 xSpeed = -xSpeed;
 
-        if (element.Y < 0)
+        if (element.Y < Draggable.options.bounds.top)
             if (ySpeed > 0)
                 ySpeed = -ySpeed;
 
-        var screenSize = Draggable.getScreenSize();
+        
 
-        if (element.X + element.obj.offsetWidth > screenSize.w)
+        if (element.X + element.obj.offsetWidth > Draggable.options.bounds.right)
             if (xSpeed < 0)
                 xSpeed = -xSpeed;
 
-        if (element.Y + element.obj.offsetHeight > screenSize.h)
+        if (element.Y + element.obj.offsetHeight > Draggable.options.bounds.bottom)
             if (ySpeed < 0)
                 ySpeed = -ySpeed;
 
@@ -202,11 +214,10 @@ var Draggable = {
     },
 
     elementInBounds: function (element) {
-        if (element.X < 0) return false;
-        if (element.Y < 0) return false;
-        var screenSize = Draggable.getScreenSize();
-        if (element.X + element.obj.offsetWidth > screenSize.w) return false;
-        if (element.Y + element.obj.offsetHeight > screenSize.h) return false;
+        if (element.X < Draggable.options.bounds.left) return false;
+        if (element.Y < Draggable.options.bounds.top) return false;
+        if (element.X + element.obj.offsetWidth > Draggable.options.bounds.right) return false;
+        if (element.Y + element.obj.offsetHeight > Draggable.options.bounds.bottom) return false;
         return true;
     },
 

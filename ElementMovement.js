@@ -10,18 +10,26 @@ var Draggable = {
         "enableTransforming": true
     },
 
+    elements: new Array(),
+
     lastDraggedElement: undefined,
 
     setUpDraggableElements: function () {
-        var _obj = {};
 
         var elements = document.querySelectorAll('[' + "canMove" + ']');
-        _obj.elements = new Array();
 
         for (i = 0; i < elements.length; i++) {
-            _obj.elements.push(Draggable.setupElement(elements[i]));
+            Draggable.elements.push(Draggable.setupElement(elements[i]));
         }
 
+
+        window.onmouseup = function (e){
+             for (i = 0; i < Draggable.elements.length; i++) {
+                if (Draggable.elements[i].isDown) {
+                    Draggable.elements[i].onmouseup();
+                }
+            }
+        }
         window.onmousemove = function (e) {
             if (Draggable.lastDraggedElement === undefined) return;
             if (Draggable.lastDraggedElement.isDown == false) return;
@@ -29,6 +37,12 @@ var Draggable = {
             var x = e.clientX;
             var y = e.clientY;
             var rect = Draggable.lastDraggedElement.obj.getBoundingClientRect();
+
+            for (i = 0; i < Draggable.elements.length; i++) {
+                if (Draggable.elements[i].isDown) {
+                    Draggable.elements[i].onmousemove(e);
+                }
+            }
 
             if (!(rect.left <= x && rect.right >= x)) {
                 Draggable.lastDraggedElement.obj.onmouseup();
@@ -40,28 +54,25 @@ var Draggable = {
                 return;
             }
         }
-
-        return _obj;
     },
 
     setupElement: function (e) {
         var element = {};
         element.obj = e;
         element.isDown = false;
-        element.originalZindex = 0;
+        element.originalZindex = element.obj.style.zIndex;
         element.obj.ondragstart = function () { return false; };
         //mouse down
         element.obj.onmousedown = function (e) {
             element.isDown = true;
-            var x = e.offsetX || e.layerX;
-            var y = e.offsetY || e.layerY;
+            var x = e.x;
+            var y = e.y;
             var rect = element.obj.getBoundingClientRect();
 
-            element.originalZindex = element.obj.style.zIndex;
             element.obj.style.zIndex = Draggable.options.onTopzIndex;
 
-            element.offsetY = y;
-            element.offsetX = x;
+            element.offsetY = y - rect.top;
+            element.offsetX = x - rect.left;
 
             element.X = rect.left;
             element.Y = rect.top;
@@ -72,11 +83,17 @@ var Draggable = {
             element.obj.style.position = "absolute";
             element.obj.style.top = element.Y + "px";
             element.obj.style.left = element.X + "px";
+
+            if (Draggable.options.keepZindex) {
+                if (Draggable.lastDraggedElement !== undefined)
+                    Draggable.lastDraggedElement.obj.style.zIndex = Draggable.lastDraggedElement.originalZindex;
+                Draggable.lastDraggedElement = element;
+            }
+
             return false;
         };
         //mouse up
-
-        element.obj.onmouseup = function () {
+        element.onmouseup = function () {
             element.isDown = false;
             element.offsetX = 0;
             element.offsetY = 0;
@@ -88,22 +105,20 @@ var Draggable = {
 
             if (!Draggable.options.keepZindex) {
                 element.obj.style.zIndex = element.originalZindex;
-            } else {
-                if (Draggable.lastDraggedElement !== undefined)
-                    Draggable.lastDraggedElement.obj.style.zIndex = Draggable.lastDraggedElement.originalZindex;
-                Draggable.lastDraggedElement = element;
             }
 
         };
         //mouse move
-        element.obj.onmousemove = function (e) {
+        element.onmousemove = function (e) {
             if (element.isDown == false) return;
 
-            var x = e.offsetX || e.layerX;
-            var y = e.offsetY || e.layerY;
+            var x = e.x;
+            var y = e.y;
 
-            var shiftY = element.offsetY - y;
-            var shiftX = element.offsetX - x;
+
+
+            var shiftY = (element.Y + element.offsetY) - y;
+            var shiftX = (element.X + element.offsetX) - x;
 
             element.lastShiftY = shiftY;
             element.lastShiftX = shiftX;
@@ -195,11 +210,12 @@ var Draggable = {
     },
 
     applyTransform: function (element, shiftX, shiftY) {
-        if (Draggable.options.enableTransforming) {
-            var rotateYAngle = shiftX * 1.5;
-            var rotateXAngle = shiftY * 1.5;
 
-            var th = 25;
+        if (Draggable.options.enableTransforming) {
+            var rotateYAngle = shiftX * 0.5;
+            var rotateXAngle = shiftY * 0.5;
+
+            var th = 15;
 
             if (rotateYAngle < -th) rotateYAngle = -th;
             if (rotateXAngle < -th) rotateXAngle = -th;

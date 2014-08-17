@@ -17,6 +17,12 @@ var Draggable = {
         "moveInboundSpeed": 1
     },
 
+    callbacks: {
+        onStartMovement: undefined,
+        onMovement: undefined,
+        onMovementEnd: undefined
+    },
+
     elements: new Array(),
 
     lastDraggedElement: undefined,
@@ -38,6 +44,9 @@ var Draggable = {
             for (i = 0; i < Draggable.elements.length; i++) {
                 if (Draggable.elements[i].isDown) {
                     Draggable.elements[i].onmouseup();
+                    if (Draggable.callbacks.onMovementEnd !== undefined) {
+                        Draggable.callbacks.onMovementEnd(Draggable.elements[i], e);
+                    }
                 }
             }
         }
@@ -49,6 +58,9 @@ var Draggable = {
             for (i = 0; i < Draggable.elements.length; i++) {
                 if (Draggable.elements[i].isDown) {
                     Draggable.elements[i].onmousemove(e);
+                    if (Draggable.callbacks.onMovement !== undefined) {
+                        Draggable.callbacks.onMovement(Draggable.elements[i], e);
+                    }
                 }
             }
 
@@ -102,6 +114,10 @@ var Draggable = {
             element.obj.style.position = "absolute";
             element.obj.style.top = element.Y + "px";
             element.obj.style.left = element.X + "px";
+
+            if (Draggable.callbacks.onStartMovement !== undefined) {
+                        Draggable.callbacks.onStartMovement(element, e);
+            }
 
             if (Draggable.options.keepZindex) {
                 if (Draggable.lastDraggedElement !== undefined)
